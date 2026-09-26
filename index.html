@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>اكتشف الكلمة</title>
+<meta name="description" content="رتّب الحروف واكتشف الكلمة المخفية - لعبة عربية ممتعة">
+<meta name="theme-color" content="#0b0d15">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="اكتشف الكلمة">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Changa:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d15; --text:#f1f3fb; --muted:#98a1c9;
+  --line:rgba(255,255,255,.09);
+  --gold:#f5b53f; --gold2:#ffd76a;
+  --red:#ff5c5c; --green:#2fd57c;
+  --tile:52px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{min-height:100%}
+body{
+  font-family:'Tajawal','Segoe UI',Tahoma,sans-serif;
+  background:var(--bg); color:var(--text);
+  overflow-x:hidden; touch-action:manipulation;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(640px 420px at 85% -5%, rgba(247,181,63,.09), transparent 60%),
+    radial-gradient(560px 560px at -10% 105%, rgba(46,214,180,.07), transparent 60%),
+    radial-gradient(rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size:auto,auto,28px 28px;
+}
+#fx{position:fixed;inset:0;z-index:99;pointer-events:none}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:0;transition:.4s;
+  background:radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(255,50,50,.16))}
+body.bossmode .vignette{opacity:1;animation:breathe 1.6s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.5}}
+
+/* ---------- الشاشات ---------- */
+.screen{position:relative;z-index:1;min-height:100vh;min-height:100dvh;max-width:560px;margin:0 auto;
+  padding:22px 18px 30px;display:none;flex-direction:column}
+.screen.active{display:flex;animation:scrIn .35s ease both}
+@keyframes scrIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---------- الرئيسية ---------- */
+#s-home{align-items:center;justify-content:center;text-align:center;gap:8px}
+.logo{width:128px;height:128px;margin-bottom:6px;
+  animation:bob 3.5s ease-in-out infinite;
+  filter:drop-shadow(0 18px 34px rgba(240,170,60,.28))}
+.logo svg{width:100%;height:100%}
+.logo .sp{animation:tw 2.2s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+.logo .sp2{animation-delay:1.1s}
+.logo .sp3{animation-delay:.6s}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+@keyframes tw{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1.15)}}
+.title{font-family:'Changa';font-weight:800;font-size:clamp(38px,11vw,52px);line-height:1.15}
+.title span{color:transparent;background:linear-gradient(180deg,#ffd76a,#f0a12e);-webkit-background-clip:text;background-clip:text}
+.subtitle{color:var(--muted);font-size:16px;margin-top:2px}
+.menu{width:100%;max-width:340px;margin-top:26px;display:flex;flex-direction:column;gap:12px}
+.row2{display:flex;gap:12px}
+.row2 .btn{flex:1}
+.best-chip{margin-top:20px;background:rgba(255,215,106,.08);border:1px solid rgba(255,215,106,.25);
+  color:#e8d9ae;padding:8px 18px;border-radius:999px;font-size:14px}
+.best-chip b{font-family:'Changa';color:var(--gold2)}
+.ver{margin-top:14px;color:#5c6488;font-size:12.5px}
+
+/* ---------- الأزرار ---------- */
+.btn{border:1px solid var(--line);cursor:pointer;font-family:'Tajawal';font-weight:700;
+  border-radius:16px;padding:14px 20px;font-size:17px;color:var(--text);
+  background:rgba(255,255,255,.05);transition:transform .12s,background .2s}
+.btn:active{transform:scale(.96)}
+.btn:focus{outline:none}
+.btn:focus-visible{outline:2px solid rgba(255,215,106,.6)}
+.btn.primary{font-family:'Changa';font-weight:700;background:linear-gradient(180deg,#ffd76a,#f0a12e);
+  color:#241a06;border:0;box-shadow:0 10px 26px rgba(240,166,46,.28), inset 0 1px 0 rgba(255,255,255,.55)}
+.btn.big{padding:16px;font-size:19px}
+.btn.danger{background:rgba(255,92,92,.1);border-color:rgba(255,92,92,.35);color:#ff9d9d}
+.btn.armed{background:rgba(255,92,92,.25);border-color:rgba(255,92,92,.6)}
+.icon-btn{width:42px;height:42px;flex-shrink:0;border-radius:13px;background:rgba(255,255,255,.06);
+  border:1px solid var(--line);color:var(--text);cursor:pointer;display:grid;place-items:center}
+.icon-btn:active{transform:scale(.9)}
+
+/* ---------- اختيار القسم ---------- */
+.bar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.bar h2{font-family:'Changa';font-size:24px;flex:1}
+.dif-pick{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--line);
+  border-radius:14px;padding:4px;gap:4px;margin-bottom:14px}
+.dif-pick button{flex:1;border:0;background:transparent;color:var(--muted);font-family:'Tajawal';
+  font-weight:700;padding:9px;border-radius:10px;cursor:pointer;font-size:14.5px;transition:.2s}
+.dif-pick button.on{background:linear-gradient(180deg,#2c3358,#232948);color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cat-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:16px;
+  border-radius:20px;cursor:pointer;text-align:start;font-family:'Tajawal';
+  border:1px solid hsl(var(--c) 60% 55% / .28);
+  background:linear-gradient(160deg, hsl(var(--c) 70% 55% / .16), hsl(var(--c) 70% 50% / .05));
+  transition:transform .15s}
+.cat-tile:active{transform:scale(.95)}
+.cat-tile .ce{font-size:34px;line-height:1}
+.cat-tile b{font-family:'Changa';font-size:18px}
+.cat-tile small{color:var(--muted);font-size:12.5px}
+.cat-tile.random{grid-column:1/-1;flex-direction:row;align-items:center;gap:14px;padding:16px 18px;
+  background:linear-gradient(120deg, rgba(245,181,63,.18), rgba(255,92,92,.13));
+  border-color:rgba(255,215,106,.4);overflow:hidden}
+.cat-tile.random .ce{font-size:30px}
+.cat-tile.random .rt{display:flex;flex-direction:column;gap:3px}
+.cat-tile.random::after{content:'';position:absolute;inset:0;border-radius:20px;pointer-events:none;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.12) 50%,transparent 70%);
+  background-size:250% 100%;animation:shine 3s linear infinite}
+@keyframes shine{from{background-position:200% 0}to{background-position:-100% 0}}
+.note{margin-top:14px;text-align:center;color:var(--muted);font-size:13px}
+
+/* ---------- شاشة اللعب ---------- */
+#s-game{gap:12px}
+.hud{display:flex;align-items:center;gap:12px}
+.hearts{display:flex;gap:5px;flex:1;justify-content:center}
+.heart{display:inline-flex}
+.heart svg{width:24px;height:24px;fill:#ff5c7a;filter:drop-shadow(0 2px 6px rgba(255,92,122,.4));transition:.35s}
+.heart.lost svg{fill:#3a4060;filter:none;transform:scale(.82)}
+.heart.breaking{animation:brk .45s ease}
+@keyframes brk{30%{transform:scale(1.5) rotate(-14deg)}60%{transform:scale(.7) rotate(10deg)}100%{transform:scale(.82)}}
+.score-chip{display:flex;align-items:center;gap:7px;background:rgba(255,215,106,.1);
+  border:1px solid rgba(255,215,106,.3);padding:7px 14px;border-radius:999px;font-family:'Changa'}
+.score-chip svg{width:17px;height:17px}
+.score-chip b{font-size:18px;color:var(--gold2);min-width:2ch;text-align:center}
+.score-chip.bump{animation:chipBump .4s}
+@keyframes chipBump{40%{transform:scale(1.15)}}
+.hud2{display:flex;align-items:center;justify-content:space-between}
+.cat-chip{display:flex;align-items:center;gap:7px;padding:6px 13px;border-radius:999px;font-weight:700;
+  font-size:13.5px;color:hsl(var(--c) 85% 74%);background:hsl(var(--c) 70% 55% / .13);
+  border:1px solid hsl(var(--c) 70% 55% / .3)}
+.qinfo{color:var(--muted);font-size:13.5px}
+.qinfo b{color:var(--text);font-family:'Changa'}
+.timer{display:flex;align-items:center;gap:10px}
+.timer .clock{font-size:18px;line-height:1}
+.timer b{font-family:'Changa';font-size:19px;min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+.tbar{flex:1;height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.tbar i{display:block;height:100%;border-radius:99px;width:100%;
+  background:linear-gradient(90deg,#2fd57c,#22c46b);transition:width .12s linear, background .3s}
+.timer.warn .tbar i{background:linear-gradient(90deg,#ffb938,#f5a12e)}
+.timer.warn b{color:#ffb938}
+.timer.danger .tbar i{background:linear-gradient(90deg,#ff5c5c,#ff7b5c)}
+.timer.danger b{color:#ff5c5c}
+.timer.danger b,.timer.danger .clock{animation:tpulse 1s infinite}
+@keyframes tpulse{50%{transform:scale(1.2)}}
+
+.game-card{position:relative;display:flex;flex-direction:column;justify-content:center;gap:18px;flex:1;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
+  border:1px solid var(--line);border-radius:26px;padding:22px 14px 18px;margin-top:4px;
+  transition:border-color .3s, box-shadow .3s}
+.game-card.boss{border-color:rgba(255,92,92,.55);
+  box-shadow:0 0 0 1px rgba(255,92,92,.2), 0 18px 50px rgba(255,70,60,.18)}
+.game-card.wrong{animation:shake .5s}
+.game-card.wrong .slot{border-color:rgba(255,92,92,.6)}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.game-card.slam{animation:slam .55s cubic-bezier(.2,1.4,.4,1)}
+@keyframes slam{0%{transform:scale(1.06)}30%{transform:scale(.97)}100%{transform:scale(1)}}
+.boss-tag{display:none;position:absolute;top:-1px;left:50%;transform:translateX(-50%);z-index:6;
+  background:linear-gradient(180deg,#ff6b5c,#e03e3e);color:#fff;font-family:'Changa';font-weight:700;
+  padding:7px 22px;border-radius:0 0 16px 16px;box-shadow:0 8px 20px rgba(224,62,62,.4)}
+.game-card.boss .boss-tag{display:block;animation:tagIn .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes tagIn{from{transform:translateX(-50%) translateY(-140%) scale(1.3)}}
+
+.clue{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;min-height:88px;justify-content:center}
+.prompt{font-size:14px;color:var(--muted);font-weight:500}
+.emoji{font-size:64px;line-height:1.15;animation:efloat 3s ease-in-out infinite;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.4))}
+@keyframes efloat{50%{transform:translateY(-7px) rotate(3deg)}}
+.riddle{color:#c6cdea;font-size:15.5px;font-weight:500;max-width:36ch}
+
+.slots,.pool{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.slots{min-height:calc(var(--tile) + 4px)}
+.pool{min-height:calc(var(--tile) + 8px)}
+.slot{width:var(--tile);height:var(--tile);border-radius:13px;display:flex;
+  border:2px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.025);
+  transition:border-color .3s, background .3s}
+.slot.done{border-style:solid;border-color:rgba(47,213,124,.6);background:rgba(47,213,124,.08)}
+.gap{width:16px}
+.lt{width:var(--tile);height:var(--tile);border-radius:13px;padding:0;
+  border:1px solid rgba(255,255,255,.16);border-bottom:3px solid rgba(0,0,0,.45);
+  background:linear-gradient(180deg,#2c3358,#20264a);color:#fff;
+  font-family:'Changa';font-weight:700;font-size:calc(var(--tile)*.5);
+  cursor:pointer;display:grid;place-items:center;
+  box-shadow:0 4px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.12);
+  transition:transform .12s, background .2s, border-color .2s, color .2s}
+.lt:active{transform:scale(.88)}
+.lt:focus{outline:none}
+.slot .lt{width:100%;height:100%;border:0}
+.lt.in{background:linear-gradient(180deg,#3b4370,#2b3157);color:#ffe3a3;
+  box-shadow:0 0 14px rgba(255,200,90,.12), inset 0 1px 0 rgba(255,255,255,.12)}
+.lt.locked{background:linear-gradient(180deg,#ffd76a,#f0a12e);color:#241a06;
+  box-shadow:0 4px 14px rgba(240,166,46,.35)}
+.lt.win{background:linear-gradient(180deg,#5ae39b,#2fd57c);color:#06281a;
+  animation:winpop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes winpop{40%{transform:scale(1.22)}}
+.lt.gone{animation:goneA .4s forwards}
+@keyframes goneA{to{transform:translateY(-34px) scale(.5);opacity:0}}
+.lt.nudge{animation:nudge .3s}
+@keyframes nudge{25%{transform:translateX(3px) rotate(3deg)}75%{transform:translateX(-3px) rotate(-3deg)}}
+
+.hints{display:flex;gap:10px}
+.hint-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;
+  border-radius:16px;background:rgba(255,255,255,.045);border:1px solid var(--line);
+  color:var(--text);cursor:pointer;font-family:'Tajawal';transition:.2s}
+.hint-btn .ic{font-size:20px;line-height:1}
+.hint-btn span{font-size:13px;font-weight:700}
+.hint-btn em{font-style:normal;font-size:11.5px;color:#ff8d8d;font-family:'Changa'}
+.hint-btn:disabled{opacity:.35;pointer-events:none}
+.hint-btn:not(:disabled):active{transform:scale(.94)}
+
+.combo{position:absolute;top:150px;left:12px;z-index:5;pointer-events:none;
+  font-family:'Changa';font-weight:800;font-size:19px;color:#ffb938;
+  background:rgba(255,120,40,.12);border:1px solid rgba(255,150,60,.4);
+  padding:6px 14px;border-radius:999px;opacity:0;transform:scale(.6);transition:.25s}
+.combo.show{opacity:1;transform:scale(1)}
+.combo.hot{color:#ff7b5c;box-shadow:0 0 18px rgba(255,110,60,.3)}
+.combo.broke{opacity:1;transform:scale(1);color:#8b93b8;background:rgba(139,147,184,.1);border-color:rgba(139,147,184,.3)}
+.combo.pop{animation:cpop .4s cubic-bezier(.2,1.8,.4,1)}
+@keyframes cpop{40%{transform:scale(1.3) rotate(-4deg)}}
+
+.popups{position:absolute;top:8px;left:0;right:0;display:flex;flex-direction:column;align-items:center;
+  gap:6px;pointer-events:none;z-index:7}
+.pop{display:flex;align-items:center;gap:12px;background:rgba(16,19,36,.92);
+  border:1px solid rgba(255,215,106,.4);padding:8px 18px;border-radius:14px;
+  box-shadow:0 10px 26px rgba(0,0,0,.45);animation:popup 1.5s ease forwards}
+.pop span{font-size:14px;font-weight:700}
+.pop b{font-family:'Changa';font-size:19px;color:var(--gold2)}
+@keyframes popup{0%{opacity:0;transform:translateY(14px) scale(.8)}12%{opacity:1;transform:none}
+  70%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
+.answer-strip{position:absolute;bottom:12px;left:50%;transform:translateX(-50%) translateY(20px);
+  opacity:0;background:rgba(224,62,62,.14);border:1px solid rgba(255,92,92,.5);color:#ffb3b3;
+  padding:9px 18px;border-radius:14px;font-weight:700;white-space:nowrap;transition:.35s;
+  z-index:7;pointer-events:none;font-size:14.5px}
+.answer-strip.show{opacity:1;transform:translateX(-50%)}
+
+/* ---------- نهاية اللعبة ---------- */
+#s-over{align-items:center;justify-content:center;text-align:center;gap:14px}
+.over-face{font-size:76px;animation:bob 3s ease-in-out infinite}
+.over-title{font-family:'Changa';font-size:34px}
+.new-record{display:none;background:linear-gradient(90deg,rgba(255,215,106,.2),rgba(255,150,60,.2));
+  border:1px solid rgba(255,215,106,.5);color:var(--gold2);padding:8px 20px;border-radius:99px;
+  font-weight:800;font-family:'Changa'}
+.new-record.show{display:block;animation:recIn .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes recIn{from{transform:scale(.4);opacity:0}}
+.final-score{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid var(--line);border-radius:22px;padding:18px 44px;display:flex;flex-direction:column;gap:2px}
+.final-score span{color:var(--muted);font-size:14px}
+.final-score b{font-family:'Changa';font-size:50px;color:var(--gold2);line-height:1.1}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:340px}
+.stats-grid>div{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;
+  padding:12px;display:flex;flex-direction:column;gap:2px}
+.stats-grid b{font-family:'Changa';font-size:20px}
+.stats-grid span{color:var(--muted);font-size:12.5px}
+.over-btns{width:100%;max-width:340px;display:flex;flex-direction:column;gap:12px}
+
+/* ---------- المودالات ---------- */
+.mback{position:fixed;inset:0;background:rgba(5,7,14,.72);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:20px;z-index:80;
+  opacity:0;pointer-events:none;transition:.25s}
+.mback.show{opacity:1;pointer-events:auto}
+.modal{width:100%;max-width:420px;max-height:86vh;max-height:86dvh;overflow-y:auto;
+  background:linear-gradient(180deg,#181d38,#12162c);border:1px solid rgba(255,255,255,.12);
+  border-radius:26px;padding:24px 20px;transform:translateY(24px) scale(.96);
+  transition:.3s cubic-bezier(.2,1.2,.4,1)}
+.mback.show .modal{transform:none}
+.modal h2{font-family:'Changa';font-size:24px;margin-bottom:16px;text-align:center}
+.modal .btn{margin-top:14px;width:100%}
+.howto-item{display:flex;gap:12px;align-items:flex-start;padding:11px 0;
+  border-bottom:1px dashed rgba(255,255,255,.08)}
+.howto-item:last-child{border:0}
+.howto-item .ic{font-size:22px;line-height:1.4}
+.howto-item p{font-size:14.5px;color:#c9d0ea;line-height:1.7}
+.howto-item b{color:var(--gold2)}
+.scores-list{display:flex;flex-direction:column;gap:9px}
+.score-row{display:flex;align-items:center;gap:13px;background:rgba(255,255,255,.04);
+  border:1px solid var(--line);border-radius:15px;padding:11px 15px}
+.score-row .rank{width:34px;text-align:center;font-size:19px}
+.score-row b{font-family:'Changa';font-size:20px;color:var(--gold2);flex:1;text-align:start}
+.score-row small{color:var(--muted);font-size:12px;text-align:end;line-height:1.5}
+.empty{text-align:center;color:var(--muted);padding:30px 0;line-height:2}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:13px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+.set-row.col{display:block}
+.set-row b{display:block;font-size:15.5px}
+.set-row .sub{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.switch{width:54px;height:30px;border-radius:99px;background:rgba(255,255,255,.1);
+  border:1px solid var(--line);position:relative;cursor:pointer;transition:.25s;flex-shrink:0}
+.switch::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;
+  border-radius:50%;background:#8b93b8;transition:.25s}
+.switch.on{background:linear-gradient(180deg,#ffd76a,#f0a12e);border-color:transparent}
+.switch.on::after{inset-inline-start:calc(100% - 25px);background:#241a06}
+.seg{display:flex;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--line);
+  border-radius:12px;padding:4px;margin-top:10px}
+.seg button{flex:1;border:0;background:none;color:var(--muted);font-weight:700;
+  font-family:'Tajawal';padding:8px;border-radius:9px;cursor:pointer;transition:.2s}
+.seg button.on{background:#2c3358;color:#fff}
+.pause-modal{display:flex;flex-direction:column;gap:10px}
+.pause-modal h2{margin-bottom:4px}
+.pause-score{text-align:center;color:var(--muted);font-size:15px;margin-bottom:6px}
+.pause-score b{font-family:'Changa';color:var(--gold2);font-size:19px}
+.pause-modal .btn{margin-top:0}
+.rc-lines{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
+.rc-lines>div{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.045);
+  border:1px solid var(--line);border-radius:14px;padding:11px 15px;font-size:14.5px}
+.rc-lines b{margin-inline-start:auto;font-family:'Changa';color:var(--gold2);font-size:17px}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(18,22,44,.95);border:1px solid rgba(255,255,255,.15);padding:11px 20px;
+  border-radius:14px;font-weight:700;font-size:14.5px;z-index:120;opacity:0;transition:.3s;
+  pointer-events:none;box-shadow:0 12px 30px rgba(0,0,0,.4);white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div class="vignette"></div>
+
+<!-- ============ الرئيسية ============ -->
+<section class="screen active" id="s-home">
+  <div class="logo" id="logoHome"></div>
+  <h1 class="title">اكتشف <span>الكلمة</span></h1>
+  <p class="subtitle">رتّب الحروف واكتشف الكلمة المخفية!</p>
+  <div class="menu">
+    <button class="btn primary big" id="btnPlay">🎮 ابدأ اللعب</button>
+    <button class="btn" id="btnScores">🏆 أعلى النتائج</button>
+    <div class="row2">
+      <button class="btn" id="btnSettings">⚙️ الإعدادات</button>
+      <button class="btn" id="btnHowto">❓ طريقة اللعب</button>
+    </div>
+  </div>
+  <div class="best-chip" id="homeBest"></div>
+  <div class="ver">الإصدار 1.0 • صُنع بحب ❤️</div>
+</section>
+
+<!-- ============ اختيار القسم ============ -->
+<section class="screen" id="s-cats">
+  <header class="bar">
+    <button class="icon-btn" data-go="home" aria-label="رجوع">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+    <h2>اختر القسم</h2>
+  </header>
+  <div class="dif-pick" id="difPick">
+    <button data-dif="1">🟢 سهل</button>
+    <button data-dif="2">🟡 متوسط</button>
+    <button data-dif="3">🔴 صعب</button>
+  </div>
+  <div class="cats" id="catGrid"></div>
+  <p class="note">💡 الصعوبة بتزيد تلقائيًا مع كل جولة</p>
+</section>
+
+<!-- ============ اللعب ============ -->
+<section class="screen" id="s-game">
+  <header class="hud">
+    <button class="icon-btn" id="btnPause" aria-label="إيقاف مؤقت">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+    </button>
+    <div class="hearts" id="hearts"></div>
+    <div class="score-chip" id="scoreChip">
+      <svg viewBox="0 0 24 24" fill="#ffd76a"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      <b id="scoreVal" data-v="0">0</b>
+    </div>
+  </header>
+  <div class="hud2">
+    <div class="cat-chip" id="catChip"></div>
+    <div class="qinfo">الجولة <b id="roundVal">1</b> • السؤال <b id="qVal">1/10</b></div>
+  </div>
+  <div class="timer" id="timerBox">
+    <span class="clock">⏱️</span><b id="timeVal">00:30</b>
+    <div class="tbar"><i id="tfill"></i></div>
+  </div>
+  <div class="game-card" id="gameCard">
+    <div class="boss-tag">👑 سؤال الزعيم</div>
+    <div class="clue">
+      <div class="prompt" id="cluePrompt"></div>
+      <div class="emoji" id="clueEmoji" style="display:none"></div>
+      <div class="riddle" id="clueRiddle"></div>
+    </div>
+    <div class="slots" id="slots"></div>
+    <div class="pool" id="pool"></div>
+    <div class="popups" id="popups"></div>
+    <div class="answer-strip" id="answerStrip"></div>
+  </div>
+  <div class="hints">
+    <button class="hint-btn" id="hReveal"><span class="ic">💡</span><span>كشف حرف</span><em>-25</em></button>
+    <button class="hint-btn" id="hShuffle"><span class="ic">🔀</span><span>خلط الحروف</span><em>-10</em></button>
+    <button class="hint-btn" id="hRemove"><span class="ic">✂️</span><span>حذف حرفين</span><em>-25</em></button>
+  </div>
+  <div class="combo" id="combo"></div>
+</section>
+
+<!-- ============ نهاية اللعبة ============ -->
+<section class="screen" id="s-over">
+  <div class="over-face">😈</div>
+  <h2 class="over-title">انتهت اللعبة!</h2>
+  <div class="new-record" id="newRecord">🏆 رقم قياسي جديد!</div>
+  <div class="final-score"><span>نقاطك النهائية</span><b id="finalScore" data-v="0">0</b></div>
+  <div class="stats-grid">
+    <div><b id="stCorrect">0</b><span>إجابات صحيحة</span></div>
+    <div><b id="stCombo">×0</b><span>أعلى كومبو</span></div>
+    <div><b id="stRound">1</b><span>وصلت للجولة</span></div>
+    <div><b id="stCat">🎲</b><span>القسم</span></div>
+  </div>
+  <div class="over-btns">
+    <button class="btn primary big" id="btnReplay">🔄 العب مجدد
